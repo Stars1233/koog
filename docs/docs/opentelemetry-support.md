@@ -313,6 +313,7 @@ CreateAgentSpan
                 NodeExecuteSpan
                     InferenceSpan
 ```
+<!--- KNIT example-opentelemetry-support-01.txt -->
 
 ### Span attributes
 
@@ -571,6 +572,7 @@ To test OpenTelemetry with Koog and Jaeger, start the Jaeger OpenTelemetry all-i
 ```bash
 docker compose up -d
 ```
+<!--- KNIT example-opentelemetry-support-02.txt -->
 
 The provided Docker Compose YAML file includes the following content:
 
@@ -586,6 +588,7 @@ services:
       - "4317:4317"
       - "16686:16686"
 ```
+<!--- KNIT example-opentelemetry-support-03.txt -->
 
 To access the Jaeger UI and view your traces, open `http://localhost:16686`.
 
