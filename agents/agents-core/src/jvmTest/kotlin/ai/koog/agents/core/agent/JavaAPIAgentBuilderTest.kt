@@ -149,7 +149,7 @@ class JavaAPIAgentBuilderTest {
             .promptExecutor(getMockExecutor(serializer) { })
             .build()
 
-        val result = agent.javaNonSuspendRun("hello", null, null)
+        val result = agent.runBlocking("hello", null)
         result.shouldBe("Echo: hello")
     }
 
@@ -157,8 +157,8 @@ class JavaAPIAgentBuilderTest {
     fun testFunctionalStrategyWithClass() {
         // Test that functional strategy can be set with a custom strategy class
         // This matches the MyStrategy pattern from the Java example
-        class TestStrategy(name: String) : NonSuspendAIAgentFunctionalStrategy<String, String>(name) {
-            override fun executeStrategy(context: AIAgentFunctionalContext, input: String): String {
+        class TestStrategy(name: String) : AIAgentFunctionalStrategyBlocking<String, String>(name) {
+            override fun executeBlocking(context: AIAgentFunctionalContext, input: String): String {
                 return "Processed: $input"
             }
         }
@@ -179,7 +179,7 @@ class JavaAPIAgentBuilderTest {
             .promptExecutor(getMockExecutor(serializer) { })
             .build()
 
-        val result = agent.javaNonSuspendRun("data")
+        val result = agent.runBlocking("data")
         result.shouldBe("Processed: data")
     }
 
