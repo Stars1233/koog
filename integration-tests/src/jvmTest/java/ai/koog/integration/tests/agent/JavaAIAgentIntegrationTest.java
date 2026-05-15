@@ -39,6 +39,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import static ai.koog.prompt.executor.clients.anthropic.AnthropicClientFactory.anthropicClient;
+import static ai.koog.prompt.executor.clients.openai.OpenAIClientFactory.openAIClient;
+
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -184,8 +187,8 @@ public class JavaAIAgentIntegrationTest extends KoogJavaTestBase {
         Models.assumeAvailable(LLMProvider.OpenAI);
         Models.assumeAvailable(LLMProvider.Anthropic);
 
-        OpenAILLMClient openAIClient = new OpenAILLMClient(TestCredentials.INSTANCE.readTestOpenAIKeyFromEnv());
-        AnthropicLLMClient anthropicClient = new AnthropicLLMClient(TestCredentials.INSTANCE.readTestAnthropicKeyFromEnv());
+        OpenAILLMClient openAIClient = openAIClient(TestCredentials.INSTANCE.readTestOpenAIKeyFromEnv());
+        AnthropicLLMClient anthropicClient = anthropicClient(TestCredentials.INSTANCE.readTestAnthropicKeyFromEnv());
         resourcesToClose.add(openAIClient);
         resourcesToClose.add(anthropicClient);
 

@@ -2,7 +2,6 @@ package ai.koog.prompt.executor.clients.openai.base
 
 import ai.koog.agents.core.tools.ToolDescriptor
 import ai.koog.http.client.KoogHttpClient
-import ai.koog.http.client.ktor.KtorKoogHttpClient
 import ai.koog.http.client.post
 import ai.koog.prompt.dsl.Prompt
 import ai.koog.prompt.executor.clients.ConnectionTimeoutConfig
@@ -34,7 +33,6 @@ import ai.koog.prompt.streaming.StreamFrame
 import ai.koog.prompt.streaming.requireEndFrame
 import ai.koog.utils.time.KoogClock
 import io.github.oshai.kotlinlogging.KLogger
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -111,28 +109,6 @@ public abstract class AbstractOpenAILLMClient<TResponse : OpenAIBaseLLMResponse,
         toolsConverter = toolsConverter
     )
 
-    /**
-     * Secondary constructor for creating a client backed by a Ktor [HttpClient].
-     * Configures authentication, base URL, timeouts, and JSON serialization automatically from [apiKey] and [settings].
-     */
-    @Deprecated("Use constructor with KoogHttpClient.Factory and provide KtorKoogHttpClient.Factory")
-    @JvmOverloads
-    public constructor(
-        apiKey: String,
-        settings: OpenAIBaseSettings,
-        baseClient: HttpClient = HttpClient(),
-        clientName: String = "OpenAICompatibleClient",
-        clock: KoogClock = KoogClock.System,
-        logger: KLogger,
-        toolsConverter: OpenAICompatibleToolDescriptorSchemaGenerator,
-    ) : this(
-        settings = settings,
-        httpClient = createConfiguredHttpClient(apiKey, settings, KtorKoogHttpClient.Factory(baseClient), clientName),
-        clock = clock,
-        logger = logger,
-        toolsConverter = toolsConverter
-    )
-
     public companion object {
 
         private val defaultJson = Json {
@@ -160,26 +136,6 @@ public abstract class AbstractOpenAILLMClient<TResponse : OpenAIBaseLLMResponse,
             connectTimeoutMillis = settings.timeoutConfig.connectTimeoutMillis,
             socketTimeoutMillis = settings.timeoutConfig.socketTimeoutMillis,
             json = defaultJson,
-        )
-
-        @Deprecated(
-            "Use createConfiguredHttpClient with KoogHttpClient.Factory",
-            ReplaceWith(
-                "createConfiguredHttpClient(apiKey, settings, KtorKoogHttpClient.Factory(), clientName)",
-                "ai.koog.http.client.ktor.KtorKoogHttpClient.Factory"
-            ),
-        )
-        public fun createConfiguredHttpClient(
-            apiKey: String,
-            settings: OpenAIBaseSettings,
-            logger: KLogger,
-            baseClient: HttpClient = HttpClient(),
-            clientName: String
-        ): KoogHttpClient = createConfiguredHttpClient(
-            apiKey = apiKey,
-            settings = settings,
-            httpClientFactory = KtorKoogHttpClient.Factory(baseClient = baseClient, logger = logger),
-            clientName = clientName
         )
     }
 
@@ -248,7 +204,7 @@ public abstract class AbstractOpenAILLMClient<TResponse : OpenAIBaseLLMResponse,
             channelFlow {
                 httpClient.sse(
                     path = chatCompletionsPath,
-                    request = request,
+                    requestBody = request,
                     requestBodyType = String::class,
                     dataFilter = { it != "[DONE]" },
                     decodeStreamingResponse = ::decodeStreamingResponse,
@@ -290,7 +246,7 @@ public abstract class AbstractOpenAILLMClient<TResponse : OpenAIBaseLLMResponse,
 
         val llmTools = tools.takeIf { it.isNotEmpty() }?.map { it.toOpenAIChatTool() }
         val messages = convertPromptToMessages(prompt, model)
-        val request = serializeProviderChatRequest(
+        val requestBody = serializeProviderChatRequest(
             messages = messages,
             model = model,
             tools = llmTools,
@@ -302,7 +258,7 @@ public abstract class AbstractOpenAILLMClient<TResponse : OpenAIBaseLLMResponse,
         return try {
             httpClient.post<String, String>(
                 path = chatCompletionsPath,
-                request = request
+                requestBody = requestBody
             ).let(::decodeResponse)
         } catch (e: CancellationException) {
             throw e

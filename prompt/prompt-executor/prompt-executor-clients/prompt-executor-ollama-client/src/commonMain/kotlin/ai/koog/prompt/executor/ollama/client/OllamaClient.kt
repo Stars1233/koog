@@ -5,7 +5,6 @@ import ai.koog.agents.core.tools.serialization.ToolDescriptorSchemaGenerator
 import ai.koog.http.client.KoogHttpClient
 import ai.koog.http.client.KoogHttpClientException
 import ai.koog.http.client.get
-import ai.koog.http.client.ktor.KtorKoogHttpClient
 import ai.koog.http.client.lines
 import ai.koog.http.client.post
 import ai.koog.prompt.dsl.ModerationCategory
@@ -45,7 +44,6 @@ import ai.koog.prompt.streaming.StreamFrame
 import ai.koog.prompt.streaming.buildStreamFrameFlow
 import ai.koog.utils.time.KoogClock
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
@@ -166,30 +164,6 @@ public class OllamaClient @JvmOverloads constructor(
         toolDescriptorConverter = toolDescriptorConverter,
     )
 
-    /**
-     * Secondary constructor for creating an [OllamaClient] backed by a Ktor [HttpClient].
-     */
-    @JvmOverloads
-    public constructor(
-        baseUrl: String = DEFAULT_BASE_URL,
-        baseClient: HttpClient = HttpClient(),
-        headers: Map<String, String> = emptyMap(),
-        queryParameters: Map<String, String> = emptyMap(),
-        timeoutConfig: ConnectionTimeoutConfig = ConnectionTimeoutConfig(),
-        clock: KoogClock = KoogClock.System,
-        contextWindowStrategy: ContextWindowStrategy = ContextWindowStrategy.Companion.None,
-        toolDescriptorConverter: ToolDescriptorSchemaGenerator = OllamaToolDescriptorSchemaGenerator()
-    ) : this(
-        httpClientFactory = KtorKoogHttpClient.Factory(baseClient),
-        baseUrl = baseUrl,
-        headers = headers,
-        queryParameters = queryParameters,
-        timeoutConfig = timeoutConfig,
-        clock = clock,
-        contextWindowStrategy = contextWindowStrategy,
-        toolDescriptorConverter = toolDescriptorConverter,
-    )
-
     internal fun LLMParams.toOllamaChatParams(): OllamaParams {
         if (this is OllamaParams) return this
         return OllamaParams(
@@ -252,7 +226,7 @@ public class OllamaClient @JvmOverloads constructor(
         val responseBody = try {
             httpClient.post<String, String>(
                 path = DEFAULT_MESSAGE_PATH,
-                request = request,
+                requestBody = request,
                 headers = jsonContentHeaders
             )
         } catch (e: CancellationException) {
@@ -342,7 +316,7 @@ public class OllamaClient @JvmOverloads constructor(
 
         httpClient.lines(
             path = DEFAULT_MESSAGE_PATH,
-            request = request,
+            requestBody = request,
             headers = jsonContentHeaders
         ).collect { line ->
             try {
@@ -400,7 +374,7 @@ public class OllamaClient @JvmOverloads constructor(
         val responseBody = try {
             httpClient.post<EmbeddingRequestDTO, String>(
                 path = DEFAULT_EMBEDDINGS_PATH,
-                request = EmbeddingRequestDTO(model = model.id, input = text)
+                requestBody = EmbeddingRequestDTO(model = model.id, input = text)
             )
         } catch (e: CancellationException) {
             throw e
@@ -447,7 +421,7 @@ public class OllamaClient @JvmOverloads constructor(
 
         val responseBody = httpClient.post<EmbeddingBatchRequestDTO, String>(
             path = DEFAULT_EMBEDDINGS_PATH,
-            request = EmbeddingBatchRequestDTO(model = model.id, input = inputs)
+            requestBody = EmbeddingBatchRequestDTO(model = model.id, input = inputs)
         )
 
         val embeddingResponse = ollamaJson.decodeFromString<EmbeddingBatchResponseDTO>(responseBody)
@@ -578,7 +552,7 @@ public class OllamaClient @JvmOverloads constructor(
     private suspend fun showModel(name: String): OllamaShowModelResponseDTO {
         val responseBody = httpClient.post<OllamaShowModelRequestDTO, String>(
             path = DEFAULT_SHOW_MODEL_PATH,
-            request = OllamaShowModelRequestDTO(name = name)
+            requestBody = OllamaShowModelRequestDTO(name = name)
         )
         return ollamaJson.decodeFromString(responseBody)
     }
@@ -587,7 +561,7 @@ public class OllamaClient @JvmOverloads constructor(
         try {
             val responseBody = httpClient.post<OllamaPullModelRequestDTO, String>(
                 path = DEFAULT_PULL_MODEL_PATH,
-                request = OllamaPullModelRequestDTO(name = name, stream = false)
+                requestBody = OllamaPullModelRequestDTO(name = name, stream = false)
             )
             val response = ollamaJson.decodeFromString<OllamaPullModelResponseDTO>(responseBody)
 

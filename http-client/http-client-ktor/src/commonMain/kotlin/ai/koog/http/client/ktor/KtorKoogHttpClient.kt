@@ -130,7 +130,7 @@ public class KtorKoogHttpClient internal constructor(
 
     override suspend fun <T : Any, R : Any> post(
         path: String,
-        request: T,
+        requestBody: T,
         requestBodyType: KClass<T>,
         responseType: KClass<R>,
         parameters: Map<String, String>,
@@ -139,9 +139,9 @@ public class KtorKoogHttpClient internal constructor(
         val response = ktorClient.post(path) {
             if (requestBodyType == String::class) {
                 @Suppress("UNCHECKED_CAST")
-                setBody(request as String)
+                setBody(requestBody as String)
             } else {
-                setBody(request, TypeInfo(requestBodyType))
+                setBody(requestBody, TypeInfo(requestBodyType))
             }
             parameters.forEach { (key, value) ->
                 parameter(key, value)
@@ -154,7 +154,7 @@ public class KtorKoogHttpClient internal constructor(
 
     override fun <T : Any, R : Any, O : Any> sse(
         path: String,
-        request: T,
+        requestBody: T,
         requestBodyType: KClass<T>,
         dataFilter: (String?) -> Boolean,
         decodeStreamingResponse: (String) -> R,
@@ -185,9 +185,9 @@ public class KtorKoogHttpClient internal constructor(
                     )
                     if (requestBodyType == String::class) {
                         @Suppress("UNCHECKED_CAST")
-                        setBody(request as String)
+                        setBody(requestBody as String)
                     } else {
-                        setBody(request, TypeInfo(requestBodyType))
+                        setBody(requestBody, TypeInfo(requestBodyType))
                     }
                 }
             ) {
@@ -227,7 +227,7 @@ public class KtorKoogHttpClient internal constructor(
 
     override fun <T : Any> lines(
         path: String,
-        request: T,
+        requestBody: T,
         requestBodyType: KClass<T>,
         parameters: Map<String, String>,
         headers: Map<String, String>,
@@ -242,9 +242,9 @@ public class KtorKoogHttpClient internal constructor(
                 applyRequestHeaders(headers)
                 if (requestBodyType == String::class) {
                     @Suppress("UNCHECKED_CAST")
-                    setBody(request as String)
+                    setBody(requestBody as String)
                 } else {
-                    setBody(request, TypeInfo(requestBodyType))
+                    setBody(requestBody, TypeInfo(requestBodyType))
                 }
             }.execute { response: HttpResponse ->
                 if (!response.status.isSuccess()) {
@@ -287,7 +287,7 @@ public class KtorKoogHttpClient internal constructor(
      * @property withSse Whether created clients should install Ktor SSE support.
      * @property logger Logger used by created clients.
      */
-    public class Factory(
+    public class Factory @JvmOverloads public constructor(
         private val baseClient: HttpClient = HttpClient(),
         private val withSse: Boolean = true,
         private val logger: KLogger = KotlinLogging.logger {}
@@ -359,52 +359,3 @@ public fun KoogHttpClient.Companion.fromKtorClient(
     baseClient: HttpClient = HttpClient(),
     configurer: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit = {}
 ): KoogHttpClient = KtorKoogHttpClient(clientName, logger, baseClient, configurer)
-
-/**
- * Creates an instance of `KoogHttpClient` using Ktor's `HttpClient` and additional configuration options.
- *
- * This method combines a base `HttpClient` with predefined configurations for request handling,
- * such as timeouts, headers, query parameters, content type, and optional Server-Sent Events (SSE) support.
- *
- * @param clientName The name assigned to the client instance, used for logging and traceability purposes.
- * @param logger A `KLogger` instance for logging client operations and errors.
- * @param baseClient The base Ktor `HttpClient` instance to be used. Defaults to a new `HttpClient` instance.
- * @param baseUrl The base URL for all HTTP requests made through this client.
- * @param requestTimeoutMillis The timeout in milliseconds for HTTP requests.
- * @param connectTimeoutMillis The timeout in milliseconds for establishing a connection.
- * @param socketTimeoutMillis The timeout in milliseconds for socket operations.
- * @param json A `Json` instance used for serializing request bodies and deserializing responses.
- * @param headers A map of default HTTP headers to include in every request. Defaults to an empty map.
- * @param queryParameters A map of default query parameters to include in every request. Defaults to an empty map.
- * @param withSse A flag indicating whether the client should support Server-Sent Events (SSE). Defaults to `true`.
- * @return A `KoogHttpClient` instance configured with the specified parameters and options.
- */
-@Deprecated(
-    "Use KtorKoogHttpClient.Factory instead",
-    ReplaceWith("KtorKoogHttpClient.Factory(baseClient, withSse).create(clientName, baseUrl, headers, queryParameters, requestTimeoutMillis, connectTimeoutMillis, socketTimeoutMillis, json)")
-)
-@Experimental
-@JvmOverloads
-public fun KoogHttpClient.Companion.fromKtorClient(
-    clientName: String,
-    logger: KLogger,
-    baseClient: HttpClient = HttpClient(),
-    baseUrl: String,
-    requestTimeoutMillis: Long = KoogHttpClient.Factory.DEFAULT_REQUEST_TIMEOUT_MS,
-    connectTimeoutMillis: Long = KoogHttpClient.Factory.DEFAULT_CONNECT_TIMEOUT_MS,
-    socketTimeoutMillis: Long = KoogHttpClient.Factory.DEFAULT_SOCKET_TIMEOUT_MS,
-    json: Json,
-    headers: Map<String, String> = emptyMap(),
-    queryParameters: Map<String, String> = emptyMap(),
-    withSse: Boolean = true,
-): KtorKoogHttpClient =
-    KtorKoogHttpClient.Factory(baseClient, withSse, logger).create(
-        clientName,
-        baseUrl,
-        headers,
-        queryParameters,
-        requestTimeoutMillis,
-        connectTimeoutMillis,
-        socketTimeoutMillis,
-        json
-    )

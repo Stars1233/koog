@@ -1,5 +1,6 @@
 package ai.koog.prompt.executor.ollama.client
 
+import ai.koog.http.client.ktor.KtorKoogHttpClient
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.ollama.client.dto.OllamaChatMessageDTO
 import ai.koog.prompt.executor.ollama.client.dto.OllamaChatRequestDTO
@@ -42,7 +43,7 @@ class OllamaThinkingFeatureTest {
         }
 
         val ollamaClient = OllamaClient(
-            baseClient = HttpClient(mockServer.mockEngine)
+            httpClientFactory = KtorKoogHttpClient.Factory(HttpClient(mockServer.mockEngine))
         )
 
         val responses = ollamaClient.execute(
@@ -75,7 +76,7 @@ class OllamaThinkingFeatureTest {
         }
 
         val ollamaClient = OllamaClient(
-            baseClient = HttpClient(mockServer.mockEngine)
+            httpClientFactory = KtorKoogHttpClient.Factory(HttpClient(mockServer.mockEngine))
         )
 
         val responses = ollamaClient.execute(
@@ -106,7 +107,7 @@ class OllamaThinkingFeatureTest {
         }
 
         val ollamaClient = OllamaClient(
-            baseClient = HttpClient(mockServer.mockEngine)
+            httpClientFactory = KtorKoogHttpClient.Factory(HttpClient(mockServer.mockEngine))
         )
 
         val responses = ollamaClient.execute(
@@ -137,7 +138,7 @@ class OllamaThinkingFeatureTest {
         }
 
         val ollamaClient = OllamaClient(
-            baseClient = HttpClient(mockServer.mockEngine)
+            httpClientFactory = KtorKoogHttpClient.Factory(HttpClient(mockServer.mockEngine))
         )
 
         val responses = ollamaClient.execute(
@@ -200,7 +201,7 @@ class OllamaThinkingFeatureTest {
         }
 
         val ollamaClient = OllamaClient(
-            baseClient = HttpClient(mockServer.mockEngine)
+            httpClientFactory = KtorKoogHttpClient.Factory(HttpClient(mockServer.mockEngine))
         )
 
         val streamFrames = ollamaClient.executeStreaming(
@@ -258,7 +259,7 @@ class OllamaThinkingFeatureTest {
         }
 
         val ollamaClient = OllamaClient(
-            baseClient = HttpClient(mockServer.mockEngine)
+            httpClientFactory = KtorKoogHttpClient.Factory(HttpClient(mockServer.mockEngine))
         )
 
         val streamFrames = ollamaClient.executeStreaming(
@@ -326,7 +327,7 @@ class OllamaThinkingFeatureTest {
         }
 
         val ollamaClient = OllamaClient(
-            baseClient = HttpClient(mockServer.mockEngine)
+            httpClientFactory = KtorKoogHttpClient.Factory(HttpClient(mockServer.mockEngine))
         )
 
         val streamFrames = ollamaClient.executeStreaming(
@@ -365,7 +366,7 @@ class OllamaThinkingFeatureTest {
         }
 
         val ollamaClient = OllamaClient(
-            baseClient = HttpClient(mockServer.mockEngine)
+            httpClientFactory = KtorKoogHttpClient.Factory(HttpClient(mockServer.mockEngine))
         )
 
         ollamaClient.block()
@@ -459,7 +460,7 @@ class OllamaThinkingFeatureTest {
         }
 
         val ollamaClient = OllamaClient(
-            baseClient = HttpClient(mockServer.mockEngine)
+            httpClientFactory = KtorKoogHttpClient.Factory(HttpClient(mockServer.mockEngine))
         )
 
         val responses = ollamaClient.execute(

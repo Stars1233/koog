@@ -15,6 +15,7 @@ kotlin {
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.serialization.json)
                 api(libs.ktor.server.core)
+                implementation(project(":http-client:http-client-ktor"))
             }
         }
 
